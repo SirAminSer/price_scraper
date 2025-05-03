@@ -1,4 +1,8 @@
+import subprocess
 from playwright.sync_api import sync_playwright
+
+# Install the browser if it's not already installed
+subprocess.run(["playwright", "install", "chromium"], check=True)
 
 def save_full_page_html(url, output_filename="output.html"):
     try:
