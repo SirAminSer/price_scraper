@@ -1,5 +1,6 @@
 from flask import Flask, send_file
 import asyncio
+import os
 from playwright.async_api import async_playwright
 
 app = Flask(__name__)
@@ -27,4 +28,5 @@ async def run_scraper():
         await browser.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    port = int(os.environ.get("PORT", 5000))  # Use PORT from environment
+    app.run(host='0.0.0.0', port=port)
