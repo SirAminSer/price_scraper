@@ -20,7 +20,7 @@ async def run_scraper():
         context = await browser.new_context()
         page = await context.new_page()
         await page.goto(url, wait_until='networkidle')
-        await page.wait_for_timeout(3000)  # wait for full JS render
+        await page.wait_for_timeout(3000)  # wait for JS to load
         content = await page.content()
         with open('output.html', 'w', encoding='utf-8') as f:
             f.write(content)
