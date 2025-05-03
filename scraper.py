@@ -1,25 +1,30 @@
-import subprocess
-from playwright.sync_api import sync_playwright
+from flask import Flask, send_file
+import asyncio
+from playwright.async_api import async_playwright
 
-# Install the browser if it's not already installed
-subprocess.run(["playwright", "install", "chromium"], check=True)
+app = Flask(__name__)
 
-def save_full_page_html(url, output_filename="output.html"):
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.goto(url, timeout=60000)  # Waits up to 60 seconds
-            page.wait_for_load_state('networkidle')  # Wait until no more network activity
-            html_content = page.content()
+@app.route('/')
+def home():
+    return 'Scraper is running. Use /scrape to fetch HTML content.'
 
-            with open(output_filename, "w", encoding="utf-8") as f:
-                f.write(html_content)
+@app.route('/scrape')
+def scrape():
+    asyncio.run(run_scraper())
+    return send_file('output.html', mimetype='text/html')
 
-            print(f"HTML content saved to {output_filename}")
-            browser.close()
-    except Exception as e:
-        print(f"An error occurred: {e}")
+async def run_scraper():
+    url = 'https://www.javanelec.com/#dtl/36592'
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context()
+        page = await context.new_page()
+        await page.goto(url, wait_until='networkidle')
+        await page.wait_for_timeout(3000)  # wait for full JS render
+        content = await page.content()
+        with open('output.html', 'w', encoding='utf-8') as f:
+            f.write(content)
+        await browser.close()
 
-# Example usage
-save_full_page_html("https://www.javanelec.com/#dtl/26396")
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
